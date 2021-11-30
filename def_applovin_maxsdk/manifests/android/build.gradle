@@ -1,24 +1,25 @@
 repositories {
-  google()
-  mavenCentral()
-  maven { url "https://android-sdk.is.com" }
-  maven { url "https://imobile-maio.github.io/maven" }
-  maven { url "https://artifact.bytedance.com/repository/pangle" }
+    google()
+    mavenCentral()
+    maven { url "https://android-sdk.is.com" }
+    maven { url "https://imobile-maio.github.io/maven" }
+    maven { url "https://artifact.bytedance.com/repository/pangle" }
 }
 
 dependencies {
-  // https://dash.applovin.com/documentation/mediation/android/getting-started/integration
-  implementation 'com.applovin:applovin-sdk:10.3.5'
+    // https://dash.applovin.com/documentation/mediation/android/getting-started/integration
+    // https://search.maven.org/search?q=g:com.applovin.mediation
+    implementation 'com.applovin:applovin-sdk:10.3.5'
 //  implementation 'com.applovin.mediation:adcolony-adapter:+'
-  implementation 'com.applovin.mediation:facebook-adapter:+'
-  implementation 'com.android.support:recyclerview-v7:28.+'
+    implementation 'com.applovin.mediation:facebook-adapter:6.8.0.0'
+    implementation 'com.android.support:recyclerview-v7:28.+'
 //  implementation 'com.applovin.mediation:fyber-adapter:+'
 //  implementation 'com.applovin.mediation:google-ad-manager-adapter:+'
-  implementation 'com.applovin.mediation:google-adapter:+'
+    implementation 'com.applovin.mediation:google-adapter:20.5.0.1'
 //  implementation 'com.applovin.mediation:inmobi-adapter:+'
 //  implementation 'com.squareup.picasso:picasso:2.71828'
 //  implementation 'com.android.support:customtabs:28.+'
-  implementation 'com.applovin.mediation:ironsource-adapter:+'
+    implementation 'com.applovin.mediation:ironsource-adapter:7.1.10.1.0'
 //  implementation 'com.applovin.mediation:maio-adapter:+'
 //  implementation 'com.applovin.mediation:mytarget-adapter:+'
 //  implementation 'com.applovin.mediation:bytedance-adapter:+'
