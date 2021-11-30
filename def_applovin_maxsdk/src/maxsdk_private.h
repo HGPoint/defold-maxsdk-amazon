@@ -31,7 +31,7 @@ void SetVerboseLogging(bool verbose);
 void SetHasUserConsent(bool hasConsent);
 void SetIsAgeRestrictedUser(bool ageRestricted);
 void SetDoNotSell(bool doNotSell);
-void SetFbDataProcessingOptions(const char* cstr, int cint1, int cint2);
+//void SetFbDataProcessingOptions(const char* cstr, int cint1, int cint2);
 void OpenMediationDebugger();
 
 void LoadInterstitial(const char* unitId);

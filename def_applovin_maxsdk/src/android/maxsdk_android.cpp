@@ -1,6 +1,7 @@
 #if defined(DM_PLATFORM_ANDROID)
 
 #include <jni.h>
+#include <dmsdk/dlib/android.h>
 
 #include "../maxsdk_private.h"
 #include "../maxsdk_callback_private.h"
@@ -50,16 +51,16 @@ static AppLovin       g_maxsdk;
 
 static void CallVoidMethod(jobject instance, jmethodID method)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     env->CallVoidMethod(instance, method);
 }
 
 static bool CallBoolMethod(jobject instance, jmethodID method)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     jboolean return_value = (jboolean)env->CallBooleanMethod(instance, method);
     return JNI_TRUE == return_value;
@@ -67,16 +68,16 @@ static bool CallBoolMethod(jobject instance, jmethodID method)
 
 static void CallVoidMethodBool(jobject instance, jmethodID method, bool cbool)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     env->CallVoidMethod(instance, method, cbool);
 }
 
 static void CallVoidMethodChar(jobject instance, jmethodID method, const char* cstr)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     jstring jstr = NULL;
     if (cstr)
@@ -94,8 +95,8 @@ static void CallVoidMethodChar(jobject instance, jmethodID method, const char* c
 
 static void CallVoidMethodCharInt(jobject instance, jmethodID method, const char* cstr, int cint)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     jstring jstr = env->NewStringUTF(cstr);
     env->CallVoidMethod(instance, method, jstr, cint);
@@ -104,8 +105,8 @@ static void CallVoidMethodCharInt(jobject instance, jmethodID method, const char
 
 static void CallVoidMethodIntChar(jobject instance, jmethodID method, int cint, const char* cstr)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     jstring jstr = NULL;
     if (cstr)
@@ -123,8 +124,8 @@ static void CallVoidMethodIntChar(jobject instance, jmethodID method, int cint, 
 
 static void CallVoidMethodInt(jobject instance, jmethodID method, int cint)
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
 
     env->CallVoidMethod(instance, method, cint);
 }
@@ -159,16 +160,15 @@ static void InitJNIMethods(JNIEnv* env, jclass cls)
 
 void Initialize_Ext()
 {
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
-    ClassLoader class_loader = ClassLoader(env);
-    jclass cls = class_loader.load("com.defold.maxsdk.AppLovinMaxJNI");
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
+    jclass cls = dmAndroid::LoadClass(env, "com/defold/maxsdk/AppLovinMaxJNI");
 
     InitJNIMethods(env, cls);
 
     jmethodID jni_constructor = env->GetMethodID(cls, "<init>", "(Landroid/app/Activity;)V");
 
-    g_maxsdk.m_AppLovinMaxJNI = env->NewGlobalRef(env->NewObject(cls, jni_constructor, dmGraphics::GetNativeAndroidActivity()));
+    g_maxsdk.m_AppLovinMaxJNI = env->NewGlobalRef(env->NewObject(cls, jni_constructor, threadAttacher.GetActivity()->clazz));
 }
 
 void OnActivateApp()
@@ -276,48 +276,47 @@ bool IsBannerShown()
     return CallBoolMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsBannerShown);
 }
 
-void SetFbDataProcessingOptions(const char* cstr, int cint1, int cint2)
-{
-    ThreadAttacher attacher;
-    JNIEnv *env = attacher.env;
-    ClassLoader class_loader = ClassLoader(env);
-    jclass fbAdSettingsClass = class_loader.load("com.facebook.ads.AdSettings");
-    
-    if (env->ExceptionCheck())
-    {
-        dmLogError("SetFbDataProcessingOptions: class `com.facebook.ads.AdSettings` not found");
-        env->ExceptionClear();
-    }
-    else
-    {
-        jclass stringClass = class_loader.load("java.lang.String");
-        if (cstr) 
-        {
-            jmethodID setDataMethod = env->GetStaticMethodID(fbAdSettingsClass, "setDataProcessingOptions", "([Ljava/lang/String;II)V");
-            jstring jstr = env->NewStringUTF(cstr);
-            jobjectArray jarr = env->NewObjectArray(1, stringClass, jstr);
-            env->CallStaticVoidMethod(fbAdSettingsClass, setDataMethod, jarr, cint1, cint2);
-            env->DeleteLocalRef(jstr);
-            env->DeleteLocalRef(jarr);
-            dmLogInfo("SetFbDataProcessingOptions AdSettings.setDataProcessingOptions( new String[] {`%s`}, %d, %d )", cstr, cint1, cint2);
-        }
-        else
-        {
-            jmethodID setEmptyMethod = env->GetStaticMethodID(fbAdSettingsClass, "setDataProcessingOptions", "([Ljava/lang/String;)V");
-            jobjectArray jarrEmpty = env->NewObjectArray(0, stringClass, NULL);
-            env->CallStaticVoidMethod(fbAdSettingsClass, setEmptyMethod, jarrEmpty);
-            env->DeleteLocalRef(jarrEmpty);
-            dmLogInfo("SetFbDataProcessingOptions AdSettings.setDataProcessingOptions( new String[] {} )");
-        }
-
-        if (env->ExceptionCheck())
-        {
-            dmLogError("SetFbDataProcessingOptions: An unexpected error occurred during JNI interaction.");
-            env->ExceptionDescribe();
-            env->ExceptionClear();
-        }
-    }
-}
+//void SetFbDataProcessingOptions(const char* cstr, int cint1, int cint2)
+//{
+//    dmAndroid::ThreadAttacher threadAttacher;
+//    JNIEnv* env = threadAttacher.GetEnv();
+//    jclass fbAdSettingsClass = dmAndroid::LoadClass(env, "com/facebook/ads/AdSettings");
+//
+//    if (env->ExceptionCheck())
+//    {
+//        dmLogError("SetFbDataProcessingOptions: class `com.facebook.ads.AdSettings` not found");
+//        env->ExceptionClear();
+//    }
+//    else
+//    {
+//        jclass stringClass = dmAndroid::LoadClass.load("java.lang.String");
+//        if (cstr)
+//        {
+//            jmethodID setDataMethod = env->GetStaticMethodID(fbAdSettingsClass, "setDataProcessingOptions", "([Ljava/lang/String;II)V");
+//            jstring jstr = env->NewStringUTF(cstr);
+//            jobjectArray jarr = env->NewObjectArray(1, stringClass, jstr);
+//            env->CallStaticVoidMethod(fbAdSettingsClass, setDataMethod, jarr, cint1, cint2);
+//            env->DeleteLocalRef(jstr);
+//            env->DeleteLocalRef(jarr);
+//            dmLogInfo("SetFbDataProcessingOptions AdSettings.setDataProcessingOptions( new String[] {`%s`}, %d, %d )", cstr, cint1, cint2);
+//        }
+//        else
+//        {
+//            jmethodID setEmptyMethod = env->GetStaticMethodID(fbAdSettingsClass, "setDataProcessingOptions", "([Ljava/lang/String;)V");
+//            jobjectArray jarrEmpty = env->NewObjectArray(0, stringClass, NULL);
+//            env->CallStaticVoidMethod(fbAdSettingsClass, setEmptyMethod, jarrEmpty);
+//            env->DeleteLocalRef(jarrEmpty);
+//            dmLogInfo("SetFbDataProcessingOptions AdSettings.setDataProcessingOptions( new String[] {} )");
+//        }
+//
+//        if (env->ExceptionCheck())
+//        {
+//            dmLogError("SetFbDataProcessingOptions: An unexpected error occurred during JNI interaction.");
+//            env->ExceptionDescribe();
+//            env->ExceptionClear();
+//        }
+//    }
+//}
 
 }//namespace dmAppLovinMax
 

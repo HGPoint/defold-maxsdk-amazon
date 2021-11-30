@@ -1,7 +1,0 @@
-# C++ symbol in your extension
-name: "AppLovinMaxExt"
-
-platforms:
-    android:
-        context:
-            aaptExtraPackages: ['com.applovin.sdk', 'androidx.work', 'com.google.android.gms.common']
