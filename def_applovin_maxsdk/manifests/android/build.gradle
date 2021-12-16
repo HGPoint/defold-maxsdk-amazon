@@ -25,5 +25,4 @@ dependencies {
 //    implementation 'com.applovin.mediation:bytedance-adapter:4.1.1.2.0'
     implementation 'com.applovin.mediation:unityads-adapter:3.7.5.1'
     implementation 'com.applovin.mediation:vungle-adapter:6.10.2.1'
-    implementation 'com.applovin.mediation:mintegral-adapter:15.7.61.0'
 }
