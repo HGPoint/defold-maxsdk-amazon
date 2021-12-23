@@ -363,7 +363,7 @@ public class AppLovinMaxJNI {
                         int rewardAmount = reward.getAmount();
                         String rewardType = reward.getLabel();
                         sendSimpleMessage(MSG_REWARDED, EVENT_EARNED_REWARD,
-                                "amount", rewardAmount, "type", rewardType);
+                                "amount", rewardAmount, "type", rewardType, "ad_network", ad.getNetworkName());
                     }
                 });
 
