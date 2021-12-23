@@ -36,38 +36,38 @@ public class AppLovinMaxJNI {
 
     // CONSTANTS:
     // duplicate of enums from maxsdk_callback_private.h:
-    private static final int MSG_INTERSTITIAL =         1;
-    private static final int MSG_REWARDED =             2;
-    private static final int MSG_BANNER =               3;
-    private static final int MSG_INITIALIZATION =       4;
+    private static final int MSG_INTERSTITIAL = 1;
+    private static final int MSG_REWARDED = 2;
+    private static final int MSG_BANNER = 3;
+    private static final int MSG_INITIALIZATION = 4;
 
-    private static final int EVENT_CLOSED =             1;
-    private static final int EVENT_FAILED_TO_SHOW =     2;
-    private static final int EVENT_OPENING =            3;
-    private static final int EVENT_FAILED_TO_LOAD =     4;
-    private static final int EVENT_LOADED =             5;
-    private static final int EVENT_NOT_LOADED =         6;
-    private static final int EVENT_EARNED_REWARD =      7;
-    private static final int EVENT_COMPLETE =           8;
-    private static final int EVENT_CLICKED =            9;
-    private static final int EVENT_DESTROYED =          10;
-    private static final int EVENT_EXPANDED =           11;
-    private static final int EVENT_COLLAPSED =          12;
-    private static final int EVENT_REVENUE_PAID =       13;
+    private static final int EVENT_CLOSED = 1;
+    private static final int EVENT_FAILED_TO_SHOW = 2;
+    private static final int EVENT_OPENING = 3;
+    private static final int EVENT_FAILED_TO_LOAD = 4;
+    private static final int EVENT_LOADED = 5;
+    private static final int EVENT_NOT_LOADED = 6;
+    private static final int EVENT_EARNED_REWARD = 7;
+    private static final int EVENT_COMPLETE = 8;
+    private static final int EVENT_CLICKED = 9;
+    private static final int EVENT_DESTROYED = 10;
+    private static final int EVENT_EXPANDED = 11;
+    private static final int EVENT_COLLAPSED = 12;
+    private static final int EVENT_REVENUE_PAID = 13;
 
     // duplicate of enums from maxsdk_private.h:
-    private static final int SIZE_BANNER =              0;
-    private static final int SIZE_LEADER =              1;
-    private static final int SIZE_MREC =                2;
+    private static final int SIZE_BANNER = 0;
+    private static final int SIZE_LEADER = 1;
+    private static final int SIZE_MREC = 2;
 
-    private static final int POS_NONE =                 0;
-    private static final int POS_TOP_LEFT =             1;
-    private static final int POS_TOP_CENTER =           2;
-    private static final int POS_TOP_RIGHT =            3;
-    private static final int POS_BOTTOM_LEFT =          4;
-    private static final int POS_BOTTOM_CENTER =        5;
-    private static final int POS_BOTTOM_RIGHT =         6;
-    private static final int POS_CENTER =               7;
+    private static final int POS_NONE = 0;
+    private static final int POS_TOP_LEFT = 1;
+    private static final int POS_TOP_CENTER = 2;
+    private static final int POS_TOP_RIGHT = 3;
+    private static final int POS_BOTTOM_LEFT = 4;
+    private static final int POS_BOTTOM_CENTER = 5;
+    private static final int POS_BOTTOM_RIGHT = 6;
+    private static final int POS_CENTER = 7;
     // END CONSTANTS
 
     private Activity mActivity;
@@ -86,13 +86,11 @@ public class AppLovinMaxJNI {
         });
     }
 
-    public void onActivateApp()
-    {
+    public void onActivateApp() {
         resumeBanner();
     }
 
-    public void onDeactivateApp()
-    {
+    public void onDeactivateApp() {
         pauseBanner();
     }
 
@@ -172,6 +170,21 @@ public class AppLovinMaxJNI {
         maxsdkAddToQueue(msg, message);
     }
 
+    private void sendSimpleMessage(int msg, int eventId, String key_2, int value_2, String key_3, String value_3, String key_4, String value_4) {
+        String message = null;
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("event", eventId);
+            obj.put(key_2, value_2);
+            obj.put(key_3, value_3);
+            obj.put(key_4, value_4);
+            message = obj.toString();
+        } catch (JSONException e) {
+            message = getJsonConversionErrorMessage(e.getMessage());
+        }
+        maxsdkAddToQueue(msg, message);
+    }
+
     private void sendSimpleMessage(int msg, int eventId, String key_2, double value_2, String key_3, String value_3) {
         String message = null;
         try {
@@ -189,7 +202,7 @@ public class AppLovinMaxJNI {
 //--------------------------------------------------
 // Interstitial ADS
 
-    private  MaxInterstitialAd mInterstitialAd;
+    private MaxInterstitialAd mInterstitialAd;
 
     public void loadInterstitial(final String unitId) {
         mActivity.runOnUiThread(new Runnable() {
@@ -320,7 +333,7 @@ public class AppLovinMaxJNI {
 
                         int errorCode = maxError.getCode();
                         sendSimpleMessage(MSG_REWARDED, EVENT_FAILED_TO_SHOW,
-                                "code", errorCode, "error", getErrorMessage(ad, maxError));
+                                "code", errorCode, "ad_network", ad.getNetworkName(), "error", getErrorMessage(ad, maxError));
                     }
 
                     @Override
@@ -534,9 +547,7 @@ public class AppLovinMaxJNI {
                     mBannerGravity = getGravity(pos);
                     mBannerAdView.setPlacement(placement);
                     showBannerUiThread();
-                }
-                else
-                {
+                } else {
                     // Log.d(TAG, "The banner ad wasn't ready yet.");
                     sendSimpleMessage(MSG_REWARDED, EVENT_NOT_LOADED,
                             "error", "Can't show Banner AD that wasn't loaded.");
@@ -661,10 +672,10 @@ public class AppLovinMaxJNI {
         mBannerLayout = new RelativeLayout(mActivity);
         mBannerLayout.setVisibility(View.GONE);
         mBannerLayout.setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         mBannerLayout.addView(adView, getAdLayoutParams(adFormat));
         mActivity.getWindowManager().addView(mBannerLayout, getWindowLayoutParams());
     }
