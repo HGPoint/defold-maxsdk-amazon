@@ -39,7 +39,7 @@ dependencies {
 
     implementation 'com.applovin.mediation:mytarget-adapter:5.15.0.3'
 
-    implementation 'com.applovin.mediation:bytedance-adapter:4.3.0.4.0'
+    // implementation 'com.applovin.mediation:bytedance-adapter:4.3.0.4.0'
 
-//    implementation 'com.applovin.mediation:fyber-adapter:8.1.3.0'
+    // implementation 'com.applovin.mediation:fyber-adapter:8.1.3.0'
 }
