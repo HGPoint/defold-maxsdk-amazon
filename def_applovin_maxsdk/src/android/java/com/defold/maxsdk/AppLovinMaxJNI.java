@@ -170,7 +170,7 @@ public class AppLovinMaxJNI {
         maxsdkAddToQueue(msg, message);
     }
 
-    private void sendSimpleMessage(int msg, int eventId, String key_2, int value_2, String key_3, String value_3, String key_4, String value_4) {
+    private void sendSimpleMessage(int msg, int eventId, String key_2, String value_2, String key_3, double value_3, String key_4, String value_4) {
         String message = null;
         try {
             JSONObject obj = new JSONObject();
@@ -185,6 +185,22 @@ public class AppLovinMaxJNI {
         maxsdkAddToQueue(msg, message);
     }
 
+    private void sendSimpleMessage(int msg, int eventId, String key_2, int value_2, String key_3, String value_3, String key_4, String value_4, String key_5, String value_5) {
+        String message = null;
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("event", eventId);
+            obj.put(key_2, value_2);
+            obj.put(key_3, value_3);
+            obj.put(key_4, value_4);
+            obj.put(key_5, value_5);
+            message = obj.toString();
+        } catch (JSONException e) {
+            message = getJsonConversionErrorMessage(e.getMessage());
+        }
+        maxsdkAddToQueue(msg, message);
+    }
+
     private void sendSimpleMessage(int msg, int eventId, String key_2, double value_2, String key_3, String value_3) {
         String message = null;
         try {
@@ -192,6 +208,21 @@ public class AppLovinMaxJNI {
             obj.put("event", eventId);
             obj.put(key_2, value_2);
             obj.put(key_3, value_3);
+            message = obj.toString();
+        } catch (JSONException e) {
+            message = getJsonConversionErrorMessage(e.getMessage());
+        }
+        maxsdkAddToQueue(msg, message);
+    }
+
+    private void sendSimpleMessage(int msg, int eventId, String key_2, double value_2, String key_3, String value_3, String key_4, String value_4) {
+        String message = null;
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("event", eventId);
+            obj.put(key_2, value_2);
+            obj.put(key_3, value_3);
+            obj.put(key_4, value_4);
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
@@ -214,7 +245,7 @@ public class AppLovinMaxJNI {
                     public void onAdLoaded(MaxAd ad) {
                         mInterstitialAd = adInstance;
                         sendSimpleMessage(MSG_INTERSTITIAL, EVENT_LOADED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -231,7 +262,7 @@ public class AppLovinMaxJNI {
                         }
 
                         sendSimpleMessage(MSG_INTERSTITIAL, EVENT_OPENING,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -248,13 +279,15 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdHidden(MaxAd ad) {
                         sendSimpleMessage(MSG_INTERSTITIAL, EVENT_CLOSED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName(), 
+                                "revenue", ad.getRevenue(),
+                                "ad_unit_id", ad.getAdUnitId());
                     }
 
                     @Override
                     public void onAdClicked(MaxAd ad) {
                         sendSimpleMessage(MSG_INTERSTITIAL, EVENT_CLICKED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
                 });
 
@@ -262,7 +295,7 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdRevenuePaid(MaxAd ad) {
                         sendSimpleMessage(MSG_INTERSTITIAL, EVENT_REVENUE_PAID,
-                                "revenue", ad.getRevenue(), "network", ad.getNetworkName());
+                                "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
                     }
                 });
 
@@ -305,7 +338,7 @@ public class AppLovinMaxJNI {
                     public void onAdLoaded(MaxAd ad) {
                         mRewardedAd = adInstance;
                         sendSimpleMessage(MSG_REWARDED, EVENT_LOADED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -322,7 +355,7 @@ public class AppLovinMaxJNI {
                         }
 
                         sendSimpleMessage(MSG_REWARDED, EVENT_OPENING,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -339,13 +372,13 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdHidden(MaxAd ad) {
                         sendSimpleMessage(MSG_REWARDED, EVENT_CLOSED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
                     public void onAdClicked(MaxAd ad) {
                         sendSimpleMessage(MSG_REWARDED, EVENT_CLICKED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -363,7 +396,9 @@ public class AppLovinMaxJNI {
                         int rewardAmount = reward.getAmount();
                         String rewardType = reward.getLabel();
                         sendSimpleMessage(MSG_REWARDED, EVENT_EARNED_REWARD,
-                                "amount", rewardAmount, "type", rewardType, "ad_network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName(),
+                                "revenue", ad.getRevenue(),
+                                "ad_unit_id", ad.getAdUnitId());
                     }
                 });
 
@@ -371,7 +406,7 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdRevenuePaid(MaxAd ad) {
                         sendSimpleMessage(MSG_REWARDED, EVENT_REVENUE_PAID,
-                                "revenue", ad.getRevenue(), "network", ad.getNetworkName());
+                                "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
                     }
                 });
 
@@ -448,13 +483,13 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdExpanded(MaxAd ad) {
                         sendSimpleMessage(MSG_BANNER, EVENT_EXPANDED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
                     public void onAdCollapsed(MaxAd ad) {
                         sendSimpleMessage(MSG_BANNER, EVENT_COLLAPSED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -479,7 +514,7 @@ public class AppLovinMaxJNI {
                                 }
 
                                 sendSimpleMessage(MSG_BANNER, EVENT_LOADED,
-                                        "network", ad.getNetworkName());
+                                        "ad_network", ad.getNetworkName());
                             }
                         });
                     }
@@ -504,7 +539,7 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdClicked(MaxAd ad) {
                         sendSimpleMessage(MSG_BANNER, EVENT_CLICKED,
-                                "network", ad.getNetworkName());
+                                "ad_network", ad.getNetworkName());
                     }
 
                     @Override
@@ -519,7 +554,7 @@ public class AppLovinMaxJNI {
                     @Override
                     public void onAdRevenuePaid(MaxAd ad) {
                         sendSimpleMessage(MSG_BANNER, EVENT_REVENUE_PAID,
-                                "revenue", ad.getRevenue(), "network", ad.getNetworkName());
+                                "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
                     }
                 });
 
