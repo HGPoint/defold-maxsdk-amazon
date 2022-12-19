@@ -4,11 +4,17 @@ repositories {
     maven { url "https://android-sdk.is.com" }
     maven { url "https://imobile-maio.github.io/maven" }
     maven { url "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea" }
+    maven { url "https://maven.ogury.co" }
 }
 
 dependencies {
     // https://dash.applovin.com/documentation/mediation/android/getting-started/integration
     // https://search.maven.org/search?q=g:com.applovin.mediation
+
+    // mintegral, inmobi
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    // inmobi
+    implementation 'com.squareup.picasso:picasso:2.71828'
 
     implementation 'com.applovin:applovin-sdk:11.6.0'
 
@@ -17,10 +23,6 @@ dependencies {
     implementation 'com.applovin.mediation:google-ad-manager-adapter:21.3.0.2'
 
     implementation 'com.applovin.mediation:google-adapter:21.3.0.2'
-    // mintegral, inmobi
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    // inmobi
-    implementation 'com.squareup.picasso:picasso:2.71828'
 
     implementation 'com.applovin.mediation:ironsource-adapter:7.2.5.0.1'
 
@@ -40,4 +42,5 @@ dependencies {
 
     implementation 'com.applovin.mediation:fyber-adapter:8.2.1.0'
 
+    implementation 'com.applovin.mediation:ogury-presage-adapter:5.4.0.0'
 }
