@@ -5,7 +5,7 @@
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_ANDROID) //|| defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS)
 
 #include "utils/LuaUtils.h"
 #include "maxsdk_private.h"
@@ -135,15 +135,29 @@ static int Lua_LoadInterstitial(lua_State* L)
 static int Lua_ShowInterstitial(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 0);
-    const char* placement_lua = luaL_checkstringd(L, 1, NULL);
-    ShowInterstitial(placement_lua);
+    if (lua_type(L, 1) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for Interstitial UnitId variable '%s'.", luaL_typename(L, 1), lua_tostring(L, 1));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* unitId_lua = luaL_checkstringd(L, 1, NULL);
+    const char* placement_lua = luaL_checkstringd(L, 2, NULL);
+    ShowInterstitial(unitId_lua, placement_lua);
     return 0;
 }
 
 static int Lua_IsInterstitialLoaded(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 1);
-    bool is_loaded = IsInterstitialLoaded();
+    if (lua_type(L, 1) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for Interstitial UnitId variable '%s'.", luaL_typename(L, 1), lua_tostring(L, 1));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* unitId_lua = luaL_checkstringd(L, 1, NULL);
+    bool is_loaded = IsInterstitialLoaded(unitId_lua);
     lua_pushboolean(L, is_loaded);
     return 1;
 }
@@ -165,15 +179,29 @@ static int Lua_LoadRewarded(lua_State* L)
 static int Lua_ShowRewarded(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 0);
-    const char* placement_lua = luaL_checkstringd(L, 1, NULL);
-    ShowRewarded(placement_lua);
+    if (lua_type(L, 1) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for Rewarded UnitId variable '%s'.", luaL_typename(L, 1), lua_tostring(L, 1));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* unitId_lua = luaL_checkstring(L, 1);
+    const char* placement_lua = luaL_checkstringd(L, 2, NULL);
+    ShowRewarded(unitId_lua, placement_lua);
     return 0;
 }
 
 static int Lua_IsRewardedLoaded(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 1);
-    bool is_loaded = IsRewardedLoaded();
+    if (lua_type(L, 1) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for Rewarded UnitId variable '%s'.", luaL_typename(L, 1), lua_tostring(L, 1));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* unitId_lua = luaL_checkstring(L, 1);
+    bool is_loaded = IsRewardedLoaded(unitId_lua);
     lua_pushboolean(L, is_loaded);
     return 1;
 }

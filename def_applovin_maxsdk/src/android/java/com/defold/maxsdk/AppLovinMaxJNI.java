@@ -70,6 +70,11 @@ public class AppLovinMaxJNI {
     private static final int POS_CENTER = 7;
     // END CONSTANTS
 
+    
+    // Fullscreen Ad Fields
+    private final Map<String, MaxInterstitialAd> mInterstitials = new HashMap<>( 2 );
+    private final Map<String, MaxRewardedAd>     mRewardedAds   = new HashMap<>( 2 );
+
     private Activity mActivity;
 
     public AppLovinMaxJNI(final Activity activity) {
@@ -84,6 +89,148 @@ public class AppLovinMaxJNI {
                 sendSimpleMessage(MSG_INITIALIZATION, EVENT_COMPLETE);
             }
         });
+    }
+
+    private MaxInterstitialAd retrieveInterstitial(String adUnitId)
+    {
+        MaxInterstitialAd result = mInterstitials.get( adUnitId );
+        if ( result == null )
+        {
+            result = new MaxInterstitialAd( adUnitId, mActivity );
+            result.setListener(new MaxAdListener() {
+                @Override
+                public void onAdLoaded(MaxAd ad) {
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_LOADED,
+                            "ad_network", ad.getNetworkName());
+                }
+
+                @Override
+                public void onAdLoadFailed(String adUnitId, final MaxError maxError) {
+                    int errorCode = maxError.getCode();
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_FAILED_TO_LOAD,
+                            "code", errorCode, "error", getErrorMessage(adUnitId, maxError));
+                }
+
+                @Override
+                public void onAdDisplayed(MaxAd ad) {
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_OPENING,
+                            "ad_network", ad.getNetworkName());
+                }
+
+                @Override
+                public void onAdDisplayFailed(MaxAd ad, final MaxError maxError) {
+                    int errorCode = maxError.getCode();
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_FAILED_TO_SHOW,
+                            "code", errorCode, "error", getErrorMessage(ad, maxError));
+                }
+
+                @Override
+                public void onAdHidden(MaxAd ad) {
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_CLOSED,
+                            "ad_network", ad.getNetworkName(), 
+                            "revenue", ad.getRevenue(),
+                            "ad_unit_id", ad.getAdUnitId());
+                }
+
+                @Override
+                public void onAdClicked(MaxAd ad) {
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_CLICKED,
+                            "ad_network", ad.getNetworkName());
+                }
+            });
+
+            result.setRevenueListener(new MaxAdRevenueListener() {
+                @Override
+                public void onAdRevenuePaid(MaxAd ad) {
+                    sendSimpleMessage(MSG_INTERSTITIAL, EVENT_REVENUE_PAID,
+                            "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
+                }
+            });
+
+            mInterstitials.put( adUnitId, result );
+        }
+
+        return result;
+    }
+
+    private MaxRewardedAd retrieveRewardedAd(String adUnitId)
+    {
+        MaxRewardedAd result = mRewardedAds.get( adUnitId );
+        if ( result == null )
+        {
+            result = MaxRewardedAd.getInstance(unitId, mActivity);
+            result.setListener(new MaxRewardedAdListener() {
+                @Override
+                public void onAdLoaded(MaxAd ad) {
+                    sendSimpleMessage(MSG_REWARDED, EVENT_LOADED,
+                            "ad_network", ad.getNetworkName());
+                }
+
+                @Override
+                public void onAdLoadFailed(String adUnitId, final MaxError maxError) {
+                    int errorCode = maxError.getCode();
+                    sendSimpleMessage(MSG_REWARDED, EVENT_FAILED_TO_LOAD,
+                            "code", errorCode, "error", getErrorMessage(adUnitId, maxError));
+                }
+
+                @Override
+                public void onAdDisplayed(MaxAd ad) {
+                    sendSimpleMessage(MSG_REWARDED, EVENT_OPENING,
+                            "ad_network", ad.getNetworkName());
+                }
+
+                @Override
+                public void onAdDisplayFailed(MaxAd ad, final MaxError maxError) {
+                    int errorCode = maxError.getCode();
+                    sendSimpleMessage(MSG_REWARDED, EVENT_FAILED_TO_SHOW,
+                            "code", errorCode, "ad_network", ad.getNetworkName(), "error", getErrorMessage(ad, maxError));
+                }
+
+                @Override
+                public void onAdHidden(MaxAd ad) {
+                    sendSimpleMessage(MSG_REWARDED, EVENT_CLOSED,
+                            "ad_network", ad.getNetworkName());
+                }
+
+                @Override
+                public void onAdClicked(MaxAd ad) {
+                    sendSimpleMessage(MSG_REWARDED, EVENT_CLICKED,
+                            "ad_network", ad.getNetworkName());
+                }
+
+                @Override
+                public void onRewardedVideoStarted(MaxAd ad) {
+                    // Log.d(TAG, "onRewardedVideoStarted");
+                }
+
+                @Override
+                public void onRewardedVideoCompleted(MaxAd ad) {
+                    // Log.d(TAG, "onRewardedVideoCompleted");
+                }
+
+                @Override
+                public void onUserRewarded(MaxAd ad, MaxReward reward) {
+                    int rewardAmount = reward.getAmount();
+                    String rewardType = reward.getLabel();
+                    sendSimpleMessage(MSG_REWARDED, EVENT_EARNED_REWARD,
+                            "ad_network", ad.getNetworkName(),
+                            "revenue", ad.getRevenue(),
+                            "ad_unit_id", ad.getAdUnitId());
+                }
+            });
+
+            result.setRevenueListener(new MaxAdRevenueListener() {
+                @Override
+                public void onAdRevenuePaid(MaxAd ad) {
+                    sendSimpleMessage(MSG_REWARDED, EVENT_REVENUE_PAID,
+                            "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
+                }
+            });
+
+            mRewardedAds.put( adUnitId, result );
+        }
+
+        return result;
     }
 
     public void onActivateApp() {
@@ -239,76 +386,17 @@ public class AppLovinMaxJNI {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final MaxInterstitialAd adInstance = new MaxInterstitialAd(unitId, mActivity);
-                adInstance.setListener(new MaxAdListener() {
-                    @Override
-                    public void onAdLoaded(MaxAd ad) {
-                        mInterstitialAd = adInstance;
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_LOADED,
-                                "ad_network", ad.getNetworkName());
-                    }
-
-                    @Override
-                    public void onAdLoadFailed(String adUnitId, final MaxError maxError) {
-                        int errorCode = maxError.getCode();
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_FAILED_TO_LOAD,
-                                "code", errorCode, "error", getErrorMessage(adUnitId, maxError));
-                    }
-
-                    @Override
-                    public void onAdDisplayed(MaxAd ad) {
-                        if (mInterstitialAd == adInstance) {
-                            mInterstitialAd = null;
-                        }
-
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_OPENING,
-                                "ad_network", ad.getNetworkName());
-                    }
-
-                    @Override
-                    public void onAdDisplayFailed(MaxAd ad, final MaxError maxError) {
-                        if (mInterstitialAd == adInstance) {
-                            mInterstitialAd = null;
-                        }
-
-                        int errorCode = maxError.getCode();
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_FAILED_TO_SHOW,
-                                "code", errorCode, "error", getErrorMessage(ad, maxError));
-                    }
-
-                    @Override
-                    public void onAdHidden(MaxAd ad) {
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_CLOSED,
-                                "ad_network", ad.getNetworkName(), 
-                                "revenue", ad.getRevenue(),
-                                "ad_unit_id", ad.getAdUnitId());
-                    }
-
-                    @Override
-                    public void onAdClicked(MaxAd ad) {
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_CLICKED,
-                                "ad_network", ad.getNetworkName());
-                    }
-                });
-
-                adInstance.setRevenueListener(new MaxAdRevenueListener() {
-                    @Override
-                    public void onAdRevenuePaid(MaxAd ad) {
-                        sendSimpleMessage(MSG_INTERSTITIAL, EVENT_REVENUE_PAID,
-                                "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
-                    }
-                });
-
+                final MaxInterstitialAd adInstance = retrieveInterstitial(unitId);
                 adInstance.loadAd();
             }
         });
     }
 
-    public void showInterstitial(final String placement) {
+    public void showInterstitial(final String unitId, final String placement) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (isInterstitialLoaded()) {
+                if (isInterstitialLoaded(unitId)) {
                     mInterstitialAd.showAd(placement);
                 } else {
                     // Log.d(TAG, "The interstitial ad wasn't ready yet.");
@@ -319,107 +407,28 @@ public class AppLovinMaxJNI {
         });
     }
 
-    public boolean isInterstitialLoaded() {
-        return mInterstitialAd != null && mInterstitialAd.isReady();
+    public boolean isInterstitialLoaded(final String unitId) {
+        return retrieveInterstitial(unitId).isReady();
     }
 
 //--------------------------------------------------
 // Rewarded ADS
-
-    private MaxRewardedAd mRewardedAd;
-
     public void loadRewarded(final String unitId) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final MaxRewardedAd adInstance = MaxRewardedAd.getInstance(unitId, mActivity);
-                adInstance.setListener(new MaxRewardedAdListener() {
-                    @Override
-                    public void onAdLoaded(MaxAd ad) {
-                        mRewardedAd = adInstance;
-                        sendSimpleMessage(MSG_REWARDED, EVENT_LOADED,
-                                "ad_network", ad.getNetworkName());
-                    }
-
-                    @Override
-                    public void onAdLoadFailed(String adUnitId, final MaxError maxError) {
-                        int errorCode = maxError.getCode();
-                        sendSimpleMessage(MSG_REWARDED, EVENT_FAILED_TO_LOAD,
-                                "code", errorCode, "error", getErrorMessage(adUnitId, maxError));
-                    }
-
-                    @Override
-                    public void onAdDisplayed(MaxAd ad) {
-                        if (mRewardedAd == adInstance) {
-                            mRewardedAd = null;
-                        }
-
-                        sendSimpleMessage(MSG_REWARDED, EVENT_OPENING,
-                                "ad_network", ad.getNetworkName());
-                    }
-
-                    @Override
-                    public void onAdDisplayFailed(MaxAd ad, final MaxError maxError) {
-                        if (mRewardedAd == adInstance) {
-                            mRewardedAd = null;
-                        }
-
-                        int errorCode = maxError.getCode();
-                        sendSimpleMessage(MSG_REWARDED, EVENT_FAILED_TO_SHOW,
-                                "code", errorCode, "ad_network", ad.getNetworkName(), "error", getErrorMessage(ad, maxError));
-                    }
-
-                    @Override
-                    public void onAdHidden(MaxAd ad) {
-                        sendSimpleMessage(MSG_REWARDED, EVENT_CLOSED,
-                                "ad_network", ad.getNetworkName());
-                    }
-
-                    @Override
-                    public void onAdClicked(MaxAd ad) {
-                        sendSimpleMessage(MSG_REWARDED, EVENT_CLICKED,
-                                "ad_network", ad.getNetworkName());
-                    }
-
-                    @Override
-                    public void onRewardedVideoStarted(MaxAd ad) {
-                        // Log.d(TAG, "onRewardedVideoStarted");
-                    }
-
-                    @Override
-                    public void onRewardedVideoCompleted(MaxAd ad) {
-                        // Log.d(TAG, "onRewardedVideoCompleted");
-                    }
-
-                    @Override
-                    public void onUserRewarded(MaxAd ad, MaxReward reward) {
-                        int rewardAmount = reward.getAmount();
-                        String rewardType = reward.getLabel();
-                        sendSimpleMessage(MSG_REWARDED, EVENT_EARNED_REWARD,
-                                "ad_network", ad.getNetworkName(),
-                                "revenue", ad.getRevenue(),
-                                "ad_unit_id", ad.getAdUnitId());
-                    }
-                });
-
-                adInstance.setRevenueListener(new MaxAdRevenueListener() {
-                    @Override
-                    public void onAdRevenuePaid(MaxAd ad) {
-                        sendSimpleMessage(MSG_REWARDED, EVENT_REVENUE_PAID,
-                                "revenue", ad.getRevenue(), "ad_network", ad.getNetworkName());
-                    }
-                });
-
+                final MaxRewardedAd adInstance = retrieveRewardedAd(unitId);
+                
                 adInstance.loadAd();
             }
         });
     }
 
-    public void showRewarded(final String placement) {
+    public void showRewarded(final String unitId, final String placement) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (isRewardedLoaded()) {
+                if (isRewardedLoaded(unitId)) {
                     mRewardedAd.showAd(placement);
                 } else {
                     // Log.d(TAG, "The rewarded ad wasn't ready yet.");
@@ -430,8 +439,8 @@ public class AppLovinMaxJNI {
         });
     }
 
-    public boolean isRewardedLoaded() {
-        return mRewardedAd != null && mRewardedAd.isReady();
+    public boolean isRewardedLoaded(final String unitId) {
+        return retrieveRewardedAd(unitId).isReady();
     }
 
 //--------------------------------------------------

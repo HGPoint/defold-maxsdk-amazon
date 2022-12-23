@@ -66,6 +66,26 @@ static bool CallBoolMethod(jobject instance, jmethodID method)
     return JNI_TRUE == return_value;
 }
 
+static bool CallBoolMethodChar(jobject instance, jmethodID method, const char* cstr)
+{
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
+    
+    jstring jstr = NULL;
+    if (cstr)
+    {
+        jstr = env->NewStringUTF(cstr);
+    }
+
+    jboolean return_value = (jboolean)env->CallBooleanMethod(instance, method, jstr);
+    
+    if (cstr)
+    {
+        jstr = env->NewStringUTF(cstr);
+    }
+    return JNI_TRUE == return_value;
+}
+
 static void CallVoidMethodBool(jobject instance, jmethodID method, bool cbool)
 {
     dmAndroid::ThreadAttacher threadAttacher;
@@ -90,6 +110,36 @@ static void CallVoidMethodChar(jobject instance, jmethodID method, const char* c
     if (cstr)
     {
         env->DeleteLocalRef(jstr);
+    }
+}
+
+static void CallVoidMethodCharChar(jobject instance, jmethodID method, const char* cstr1, const char* cstr2)
+{
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
+
+    jstring jstr1 = NULL;
+    if (cstr1)
+    {
+        jstr1 = env->NewStringUTF(cstr1);
+    }
+
+    jstring jstr2 = NULL;
+    if (cstr2)
+    {
+        jstr2 = env->NewStringUTF(cstr2);
+    }
+
+    env->CallVoidMethod(instance, method, jstr1, jstr2);
+
+    if (cstr1)
+    {
+        env->DeleteLocalRef(jstr1);
+    }
+
+    if (cstr2)
+    {
+        env->DeleteLocalRef(jstr2);
     }
 }
 
@@ -143,12 +193,12 @@ static void InitJNIMethods(JNIEnv* env, jclass cls)
     g_maxsdk.m_OpenMediationDebugger  = env->GetMethodID(cls, "openMediationDebugger", "()V");
 
     g_maxsdk.m_LoadInterstitial       = env->GetMethodID(cls, "loadInterstitial", "(Ljava/lang/String;)V");
-    g_maxsdk.m_ShowInterstitial       = env->GetMethodID(cls, "showInterstitial", "(Ljava/lang/String;)V");
-    g_maxsdk.m_IsInterstitialLoaded   = env->GetMethodID(cls, "isInterstitialLoaded", "()Z");
+    g_maxsdk.m_ShowInterstitial       = env->GetMethodID(cls, "showInterstitial", "(Ljava/lang/String;Ljava/lang/String;)V");
+    g_maxsdk.m_IsInterstitialLoaded   = env->GetMethodID(cls, "isInterstitialLoaded", "(Ljava/lang/String;)Z");
 
     g_maxsdk.m_LoadRewarded     = env->GetMethodID(cls, "loadRewarded", "(Ljava/lang/String;)V");
-    g_maxsdk.m_ShowRewarded     = env->GetMethodID(cls, "showRewarded", "(Ljava/lang/String;)V");
-    g_maxsdk.m_IsRewardedLoaded = env->GetMethodID(cls, "isRewardedLoaded", "()Z");
+    g_maxsdk.m_ShowRewarded     = env->GetMethodID(cls, "showRewarded", "(Ljava/lang/String;Ljava/lang/String;)V");
+    g_maxsdk.m_IsRewardedLoaded = env->GetMethodID(cls, "isRewardedLoaded", "(Ljava/lang/String;)Z");
 
     g_maxsdk.m_LoadBanner     = env->GetMethodID(cls, "loadBanner", "(Ljava/lang/String;I)V");
     g_maxsdk.m_DestroyBanner  = env->GetMethodID(cls, "destroyBanner", "()V");
@@ -221,14 +271,14 @@ void LoadInterstitial(const char* unitId)
     CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadInterstitial, unitId);
 }
 
-void ShowInterstitial(const char* placement)
+void ShowInterstitial(const char* unitId, const char* placement)
 {
-    CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_ShowInterstitial, placement);
+    CallVoidMethodCharChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_ShowInterstitial, unitId, placement);
 }
 
-bool IsInterstitialLoaded()
+bool IsInterstitialLoaded(const char* unitId)
 {
-    return CallBoolMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsInterstitialLoaded);
+    return CallBoolMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsInterstitialLoaded, unitId);
 }
 
 void LoadRewarded(const char* unitId)
@@ -236,14 +286,14 @@ void LoadRewarded(const char* unitId)
     CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadRewarded, unitId);
 }
 
-void ShowRewarded(const char* placement)
+void ShowRewarded(const char* unitId, const char* placement)
 {
-    CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_ShowRewarded, placement);
+    CallVoidMethodCharChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_ShowRewarded, unitId, placement);
 }
 
-bool IsRewardedLoaded()
+bool IsRewardedLoaded(const char* unitId)
 {
-    return CallBoolMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsRewardedLoaded);
+    return CallBoolMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsRewardedLoaded, unitId);
 }
 
 void LoadBanner(const char* unitId, BannerSize bannerSize)
@@ -275,48 +325,6 @@ bool IsBannerShown()
 {
     return CallBoolMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsBannerShown);
 }
-
-//void SetFbDataProcessingOptions(const char* cstr, int cint1, int cint2)
-//{
-//    dmAndroid::ThreadAttacher threadAttacher;
-//    JNIEnv* env = threadAttacher.GetEnv();
-//    jclass fbAdSettingsClass = dmAndroid::LoadClass(env, "com/facebook/ads/AdSettings");
-//
-//    if (env->ExceptionCheck())
-//    {
-//        dmLogError("SetFbDataProcessingOptions: class `com.facebook.ads.AdSettings` not found");
-//        env->ExceptionClear();
-//    }
-//    else
-//    {
-//        jclass stringClass = dmAndroid::LoadClass.load("java.lang.String");
-//        if (cstr)
-//        {
-//            jmethodID setDataMethod = env->GetStaticMethodID(fbAdSettingsClass, "setDataProcessingOptions", "([Ljava/lang/String;II)V");
-//            jstring jstr = env->NewStringUTF(cstr);
-//            jobjectArray jarr = env->NewObjectArray(1, stringClass, jstr);
-//            env->CallStaticVoidMethod(fbAdSettingsClass, setDataMethod, jarr, cint1, cint2);
-//            env->DeleteLocalRef(jstr);
-//            env->DeleteLocalRef(jarr);
-//            dmLogInfo("SetFbDataProcessingOptions AdSettings.setDataProcessingOptions( new String[] {`%s`}, %d, %d )", cstr, cint1, cint2);
-//        }
-//        else
-//        {
-//            jmethodID setEmptyMethod = env->GetStaticMethodID(fbAdSettingsClass, "setDataProcessingOptions", "([Ljava/lang/String;)V");
-//            jobjectArray jarrEmpty = env->NewObjectArray(0, stringClass, NULL);
-//            env->CallStaticVoidMethod(fbAdSettingsClass, setEmptyMethod, jarrEmpty);
-//            env->DeleteLocalRef(jarrEmpty);
-//            dmLogInfo("SetFbDataProcessingOptions AdSettings.setDataProcessingOptions( new String[] {} )");
-//        }
-//
-//        if (env->ExceptionCheck())
-//        {
-//            dmLogError("SetFbDataProcessingOptions: An unexpected error occurred during JNI interaction.");
-//            env->ExceptionDescribe();
-//            env->ExceptionClear();
-//        }
-//    }
-//}
 
 }//namespace dmAppLovinMax
 

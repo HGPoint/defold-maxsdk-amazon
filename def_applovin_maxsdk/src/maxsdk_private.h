@@ -35,12 +35,12 @@ void SetDoNotSell(bool doNotSell);
 void OpenMediationDebugger();
 
 void LoadInterstitial(const char* unitId);
-void ShowInterstitial(const char* placement);
-bool IsInterstitialLoaded();
+void ShowInterstitial(const char* unitId, const char* placement);
+bool IsInterstitialLoaded(const char* unitId);
 
 void LoadRewarded(const char* unitId);
-void ShowRewarded(const char* placement);
-bool IsRewardedLoaded();
+void ShowRewarded(const char* unitId, const char* placement);
+bool IsRewardedLoaded(const char* unitId);
 
 void LoadBanner(const char* unitId, BannerSize bannerSize);
 void DestroyBanner();
