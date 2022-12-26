@@ -25,6 +25,11 @@ import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkConfiguration;
 import com.applovin.sdk.AppLovinSdkUtils;
 
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -158,7 +163,7 @@ public class AppLovinMaxJNI {
         MaxRewardedAd result = mRewardedAds.get( adUnitId );
         if ( result == null )
         {
-            result = MaxRewardedAd.getInstance(unitId, mActivity);
+            result = MaxRewardedAd.getInstance(adUnitId, mActivity);
             result.setListener(new MaxRewardedAdListener() {
                 @Override
                 public void onAdLoaded(MaxAd ad) {
@@ -429,7 +434,7 @@ public class AppLovinMaxJNI {
             @Override
             public void run() {
                 if (isRewardedLoaded(unitId)) {
-                    mRewardedAd.showAd(placement);
+                    retrieveRewardedAd(unitId).showAd(placement);
                 } else {
                     // Log.d(TAG, "The rewarded ad wasn't ready yet.");
                     sendSimpleMessage(MSG_REWARDED, EVENT_NOT_LOADED,
