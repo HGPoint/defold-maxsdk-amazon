@@ -385,8 +385,6 @@ public class AppLovinMaxJNI {
 //--------------------------------------------------
 // Interstitial ADS
 
-    private MaxInterstitialAd mInterstitialAd;
-
     public void loadInterstitial(final String unitId) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
@@ -402,7 +400,7 @@ public class AppLovinMaxJNI {
             @Override
             public void run() {
                 if (isInterstitialLoaded(unitId)) {
-                    mInterstitialAd.showAd(placement);
+                    retrieveInterstitial(unitId).showAd(placement);
                 } else {
                     // Log.d(TAG, "The interstitial ad wasn't ready yet.");
                     sendSimpleMessage(MSG_INTERSTITIAL, EVENT_NOT_LOADED,
