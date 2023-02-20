@@ -260,6 +260,9 @@
   - name: EVENT_REVENUE_PAID
     type: number
 
+  - name: EVENT_SIZE_UPDATE
+    type: number
+
 #*****************************************************************************************************
 
   - name: SIZE_BANNER

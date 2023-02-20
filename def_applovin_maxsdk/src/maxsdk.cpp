@@ -16,7 +16,15 @@ namespace dmAppLovinMax {
 static int Lua_Initialize(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 0);
-    Initialize();
+    
+    if (lua_type(L, 1) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for Interstitial UnitId variable '%s'.", luaL_typename(L, 1), lua_tostring(L, 1));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* amazon_key = luaL_checkstring(L, 1);
+    Initialize(amazon_key);
     return 0;
 }
 
@@ -128,7 +136,15 @@ static int Lua_LoadInterstitial(lua_State* L)
         return 0;
     }
     const char* unitId_lua = luaL_checkstring(L, 1);
-    LoadInterstitial(unitId_lua);
+
+    if (lua_type(L, 2) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for interstitial amazon variable '%s'.", luaL_typename(L, 2), lua_tostring(L, 2));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* amazonSlotId_lua = luaL_checkstring(L, 2);
+    LoadInterstitial(unitId_lua, amazonSlotId_lua);
     return 0;
 }
 
@@ -172,7 +188,16 @@ static int Lua_LoadRewarded(lua_State* L)
         return 0;
     }
     const char* unitId_lua = luaL_checkstring(L, 1);
-    LoadRewarded(unitId_lua);
+
+    if (lua_type(L, 2) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for rewarded amazon variable '%s'.", luaL_typename(L, 2), lua_tostring(L, 2));
+        luaL_error(L, msg);
+        return 0;
+    }
+    const char* amazonSlotId_lua = luaL_checkstring(L, 2);
+
+    LoadRewarded(unitId_lua, amazonSlotId_lua);
     return 0;
 }
 
@@ -216,11 +241,20 @@ static int Lua_LoadBanner(lua_State* L)
         return 0;
     }
     const char* unitId_lua = luaL_checkstring(L, 1);
-    BannerSize bannerSize_lua = SIZE_BANNER;
-    if (lua_type(L, 2) != LUA_TNONE) {
-        bannerSize_lua = (BannerSize)luaL_checknumber(L, 2);
+    
+    if (lua_type(L, 2) != LUA_TSTRING) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Expected string, got %s. Wrong type for Banner UnitId variable '%s'.", luaL_typename(L, 2), lua_tostring(L, 2));
+        luaL_error(L, msg);
+        return 0;
     }
-    LoadBanner(unitId_lua, bannerSize_lua);
+    const char* amazonSlotId_lua = luaL_checkstring(L, 2);
+    
+    BannerSize bannerSize_lua = SIZE_BANNER;
+    if (lua_type(L, 3) != LUA_TNONE) {
+        bannerSize_lua = (BannerSize)luaL_checknumber(L, 3);
+    }
+    LoadBanner(unitId_lua, amazonSlotId_lua, bannerSize_lua);
     return 0;
 }
 
@@ -322,6 +356,7 @@ static void LuaInit(lua_State* L)
     SETCONSTANT(EVENT_EXPANDED)
     SETCONSTANT(EVENT_COLLAPSED)
     SETCONSTANT(EVENT_REVENUE_PAID)
+    SETCONSTANT(EVENT_SIZE_UPDATE)
 
     SETCONSTANT(SIZE_BANNER)
     SETCONSTANT(SIZE_LEADER)

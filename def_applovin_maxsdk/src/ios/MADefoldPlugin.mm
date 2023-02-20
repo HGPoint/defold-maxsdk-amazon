@@ -41,6 +41,7 @@ static const int EVENT_DESTROYED = 10;
 static const int EVENT_EXPANDED = 11;
 static const int EVENT_COLLAPSED = 12;
 static const int EVENT_REVENUE_PAID = 13;
+static const int EVENT_SIZE_UPDATE = 14;
 
 #pragma mark - Initialization
 

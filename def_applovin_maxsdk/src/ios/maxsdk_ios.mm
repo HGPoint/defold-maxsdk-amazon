@@ -20,7 +20,7 @@ void OnActivateApp(){}
 void OnDeactivateApp(){}
 
 
-void Initialize(){
+void Initialize(const char* amazonAppId){
     PluginInstance = [[MADefoldPlugin alloc] init:&ForwardIOSEvent];
 }
 void SetMuted(bool muted){
@@ -67,7 +67,7 @@ void OpenMediationDebugger(){
     [[ALSdk shared] showMediationDebugger];
 }
 
-void LoadInterstitial(const char* unitId){
+void LoadInterstitial(const char* unitId, const char* amazonSlotID){
     [PluginInstance loadInterstitialWithAdUnitIdentifier:[[NSString alloc] initWithUTF8String: unitId]];
 }
 
@@ -82,7 +82,7 @@ bool IsInterstitialLoaded(const char* unitId){
     [PluginInstance isInterstitialReadyWithAdUnitIdentifier:[[NSString alloc] initWithUTF8String: unitId]];
 }
 
-void LoadRewarded(const char* unitId){
+void LoadRewarded(const char* unitId, const char* amazonSlotID){
     [PluginInstance loadRewardedAdWithAdUnitIdentifier:[[NSString alloc] initWithUTF8String: unitId]];
 }
 
@@ -97,7 +97,7 @@ bool IsRewardedLoaded(const char* unitId){
     [PluginInstance isRewardedAdReadyWithAdUnitIdentifier:[[NSString alloc] initWithUTF8String: unitId]];
 }
 
-void LoadBanner(const char* unitId, BannerSize bannerSize){}
+void LoadBanner(const char* unitId, const char* amazonSlotID, BannerSize bannerSize){}
 void DestroyBanner(){}
 void ShowBanner(BannerPosition bannerPos, const char* placement){}
 void HideBanner(){}

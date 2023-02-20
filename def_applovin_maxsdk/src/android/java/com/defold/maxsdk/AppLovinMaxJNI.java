@@ -25,6 +25,16 @@ import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkConfiguration;
 import com.applovin.sdk.AppLovinSdkUtils;
 
+import com.amazon.device.ads.AdError;
+import com.amazon.device.ads.AdRegistration;
+import com.amazon.device.ads.DTBAdCallback;
+import com.amazon.device.ads.DTBAdNetwork;
+import com.amazon.device.ads.DTBAdNetworkInfo;
+import com.amazon.device.ads.DTBAdRequest;
+import com.amazon.device.ads.DTBAdResponse;
+import com.amazon.device.ads.DTBAdSize;
+import com.amazon.device.ads.MRAIDPolicy;
+
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Locale;
@@ -59,6 +69,7 @@ public class AppLovinMaxJNI {
     private static final int EVENT_EXPANDED = 11;
     private static final int EVENT_COLLAPSED = 12;
     private static final int EVENT_REVENUE_PAID = 13;
+    private static final int EVENT_SIZE_UPDATE = 14;
 
     // duplicate of enums from maxsdk_private.h:
     private static final int SIZE_BANNER = 0;
@@ -75,10 +86,12 @@ public class AppLovinMaxJNI {
     private static final int POS_CENTER = 7;
     // END CONSTANTS
 
-    
     // Fullscreen Ad Fields
     private final Map<String, MaxInterstitialAd> mInterstitials = new HashMap<>( 2 );
     private final Map<String, MaxRewardedAd>     mRewardedAds   = new HashMap<>( 2 );
+    private final HashMap<String, Boolean>     mRewardedAdsAmazon   = new HashMap<String, Boolean>();
+    private final HashMap<String, Boolean>     mInterstitialAdsAmazon   = new HashMap<String, Boolean>();
+    private String amazonBannerSlotId = null;
 
     private Activity mActivity;
 
@@ -86,7 +99,13 @@ public class AppLovinMaxJNI {
         mActivity = activity;
     }
 
-    public void initialize() {
+    public void initialize(String AmazonAppId) {
+        AdRegistration.getInstance(AmazonAppId, mActivity);
+        AdRegistration.setAdNetworkInfo( new DTBAdNetworkInfo( DTBAdNetwork.MAX ) );
+        AdRegistration.setMRAIDSupportedVersions( new String[] { "1.0", "2.0", "3.0" } );
+        AdRegistration.setMRAIDPolicy( MRAIDPolicy.CUSTOM );
+        
+
         AppLovinSdk.getInstance(mActivity).setMediationProvider(AppLovinMediationProvider.MAX);
         AppLovinSdk.getInstance(mActivity).initializeSdk(new AppLovinSdk.SdkInitializationListener() {
             @Override
@@ -308,6 +327,20 @@ public class AppLovinMaxJNI {
         maxsdkAddToQueue(msg, message);
     }
 
+    private void sendSimpleMessage(int msg, int eventId, String key_2, int value_2, String key_3, int value_3) {
+        String message = null;
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("event", eventId);
+            obj.put(key_2, value_2);
+            obj.put(key_3, value_3);
+            message = obj.toString();
+        } catch (JSONException e) {
+            message = getJsonConversionErrorMessage(e.getMessage());
+        }
+        maxsdkAddToQueue(msg, message);
+    }
+
     private void sendSimpleMessage(int msg, int eventId, String key_2, int value_2, String key_3, String value_3) {
         String message = null;
         try {
@@ -385,12 +418,44 @@ public class AppLovinMaxJNI {
 //--------------------------------------------------
 // Interstitial ADS
 
-    public void loadInterstitial(final String unitId) {
+    public void loadInterstitial(final String unitId, final String amazonSlotID) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 final MaxInterstitialAd adInstance = retrieveInterstitial(unitId);
-                adInstance.loadAd();
+                if (mInterstitialAdsAmazon.get(unitId) == null)
+                {
+                    DTBAdRequest adLoader = new DTBAdRequest();
+                    adLoader.setSizes( new DTBAdSize.DTBInterstitialAdSize(amazonSlotID));
+                    adLoader.loadAd( new DTBAdCallback()
+                    {
+                        @Override
+                        public void onSuccess(final DTBAdResponse dtbAdResponse)
+                        {
+                            // 'rewardedAd' is your instance of MaxRewardedAd
+                            Log.d(TAG, "Amazon interstitial load success");
+                            mInterstitialAdsAmazon.put( unitId, true );
+                            adInstance.setLocalExtraParameter( "amazon_ad_response", dtbAdResponse );
+                            adInstance.loadAd();
+                        }
+
+                        @Override
+                        public void onFailure(final AdError adError)
+                        {
+                            // 'rewardedAd' is your instance of MaxRewardedAd
+                            
+                            Log.d(TAG, String.format("Amazon interstitial load error : %s ",
+                            adError.getMessage()));
+                            mInterstitialAdsAmazon.put(unitId, false);
+                            adInstance.setLocalExtraParameter( "amazon_ad_error", adError );
+                            adInstance.loadAd();
+                        }
+                    } );
+                }
+                else
+                {
+                    adInstance.loadAd();
+                }
             }
         });
     }
@@ -416,7 +481,7 @@ public class AppLovinMaxJNI {
 
 //--------------------------------------------------
 // Rewarded ADS
-    public void loadRewarded(final String unitId) {
+    public void loadRewarded(final String unitId, final String amazonSlotID) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -481,14 +546,16 @@ public class AppLovinMaxJNI {
     private MaxAdView mBannerAdView;
     private int mBannerGravity = Gravity.NO_GRAVITY;
 
-    public void loadBanner(final String unitId, final int bannerSize) {
+    public void loadBanner(final String unitId, final String amazonSlotId, final int bannerSize) {
+        if(amazonSlotId != null){
+            amazonBannerSlotId = amazonSlotId; 
+        }
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 destroyBannerUiThread();
                 MaxAdFormat adFormat = getMaxAdFormat(bannerSize);
                 mBannerAdView = new MaxAdView(unitId, adFormat, mActivity);
-
                 final MaxAdView view = mBannerAdView;
                 view.setBackgroundColor(Color.TRANSPARENT);
                 view.setListener(new MaxAdViewAdListener() {
@@ -570,8 +637,38 @@ public class AppLovinMaxJNI {
                     }
                 });
 
-                view.loadAd();
-                view.stopAutoRefresh();
+                // Raw size will be 320x50 for BANNERs on phones, and 728x90 for LEADERs on tablets
+                AppLovinSdkUtils.Size rawSize = adFormat.getSize();
+                DTBAdSize size = new DTBAdSize( rawSize.getWidth(), rawSize.getHeight(), amazonSlotId);
+
+                DTBAdRequest adLoader = new DTBAdRequest();
+                adLoader.setSizes( size );
+                adLoader.loadAd( new DTBAdCallback()
+                {
+                    @Override
+                    public void onSuccess(final DTBAdResponse dtbAdResponse)
+                    {
+                        
+                        Log.d(TAG, "Amazon banner load success ");
+                        // 'view' is your instance of MaxAdView
+                        view.setLocalExtraParameter( "amazon_ad_response", dtbAdResponse );
+                        view.loadAd();
+                        view.stopAutoRefresh();
+                    }
+
+                    @Override
+                    public void onFailure(final AdError adError)
+                    {
+                        // 'adView' is your instance of MaxAdView
+                        
+                        Log.d(TAG, String.format("Amazon banner load error : %s ",
+                        adError.getMessage()));
+                        
+                        view.setLocalExtraParameter( "amazon_ad_error", adError );
+                        view.loadAd();
+                        view.stopAutoRefresh();
+                    }
+                } );
             }
         });
     }
@@ -662,7 +759,7 @@ public class AppLovinMaxJNI {
     private void resumeBanner() {
         if (mBannerState == BannerState.PAUSED) {
             Log.d(TAG, "resumeBanner");
-            loadBanner(mBannerUnit, mBannerSize);
+            loadBanner(mBannerUnit, amazonBannerSlotId, mBannerSize);
         }
     }
 
@@ -714,6 +811,16 @@ public class AppLovinMaxJNI {
         }
     }
 
+    private void update_banner_size(MaxAdFormat adFormat) {
+        AppLovinSdkUtils.Size adSize = adFormat.getSize();
+        int widthDp = adSize.getWidth();
+        int heightDp = adSize.getHeight();
+        int widthPx = AppLovinSdkUtils.dpToPx(mActivity, widthDp);
+        int heightPx = AppLovinSdkUtils.dpToPx(mActivity, heightDp);
+        
+        sendSimpleMessage(MSG_BANNER, EVENT_SIZE_UPDATE, "x", widthPx, "y", heightPx);
+    }
+
     private void recreateBannerLayout(MaxAdView adView, MaxAdFormat adFormat) {
         removeBannerLayout();
         mBannerLayout = new RelativeLayout(mActivity);
@@ -725,6 +832,7 @@ public class AppLovinMaxJNI {
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         mBannerLayout.addView(adView, getAdLayoutParams(adFormat));
         mActivity.getWindowManager().addView(mBannerLayout, getWindowLayoutParams());
+        update_banner_size(adFormat);
     }
 
     private WindowManager.LayoutParams getWindowLayoutParams() {

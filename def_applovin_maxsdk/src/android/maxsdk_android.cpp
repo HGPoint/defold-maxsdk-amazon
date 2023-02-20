@@ -143,6 +143,48 @@ static void CallVoidMethodCharChar(jobject instance, jmethodID method, const cha
     }
 }
 
+
+static void CallVoidMethodCharCharChar(jobject instance, jmethodID method, const char* cstr1, const char* cstr2, const char* cstr3)
+{
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
+
+    jstring jstr1 = NULL;
+    if (cstr1)
+    {
+        jstr1 = env->NewStringUTF(cstr1);
+    }
+
+    jstring jstr2 = NULL;
+    if (cstr2)
+    {
+        jstr2 = env->NewStringUTF(cstr2);
+    }
+    
+    jstring jstr3 = NULL;
+    if (cstr3)
+    {
+        jstr3 = env->NewStringUTF(cstr3);
+    }
+
+    env->CallVoidMethod(instance, method, jstr1, jstr2, jstr3);
+
+    if (cstr1)
+    {
+        env->DeleteLocalRef(jstr1);
+    }
+
+    if (cstr2)
+    {
+        env->DeleteLocalRef(jstr2);
+    }
+    
+    if (cstr3)
+    {
+        env->DeleteLocalRef(jstr3);
+    }
+}
+
 static void CallVoidMethodCharInt(jobject instance, jmethodID method, const char* cstr, int cint)
 {
     dmAndroid::ThreadAttacher threadAttacher;
@@ -151,6 +193,18 @@ static void CallVoidMethodCharInt(jobject instance, jmethodID method, const char
     jstring jstr = env->NewStringUTF(cstr);
     env->CallVoidMethod(instance, method, jstr, cint);
     env->DeleteLocalRef(jstr);
+}
+
+static void CallVoidMethodCharCharInt(jobject instance, jmethodID method, const char* cstr, const char* cstr1, int cint)
+{
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
+
+    jstring jstr = env->NewStringUTF(cstr);
+    jstring jstr1 = env->NewStringUTF(cstr1);
+    env->CallVoidMethod(instance, method, jstr, jstr1, cint);
+    env->DeleteLocalRef(jstr);
+    env->DeleteLocalRef(jstr1);
 }
 
 static void CallVoidMethodIntChar(jobject instance, jmethodID method, int cint, const char* cstr)
@@ -182,7 +236,7 @@ static void CallVoidMethodInt(jobject instance, jmethodID method, int cint)
 
 static void InitJNIMethods(JNIEnv* env, jclass cls)
 {
-    g_maxsdk.m_Initialize             = env->GetMethodID(cls, "initialize", "()V");
+    g_maxsdk.m_Initialize             = env->GetMethodID(cls, "initialize", "(Ljava/lang/String;)V");
     g_maxsdk.m_OnActivateApp          = env->GetMethodID(cls, "onActivateApp", "()V");
     g_maxsdk.m_OnDeactivateApp        = env->GetMethodID(cls, "onDeactivateApp", "()V");
     g_maxsdk.m_SetMuted               = env->GetMethodID(cls, "setMuted", "(Z)V");
@@ -192,15 +246,15 @@ static void InitJNIMethods(JNIEnv* env, jclass cls)
     g_maxsdk.m_SetDoNotSell           = env->GetMethodID(cls, "setDoNotSell", "(Z)V");
     g_maxsdk.m_OpenMediationDebugger  = env->GetMethodID(cls, "openMediationDebugger", "()V");
 
-    g_maxsdk.m_LoadInterstitial       = env->GetMethodID(cls, "loadInterstitial", "(Ljava/lang/String;)V");
+    g_maxsdk.m_LoadInterstitial       = env->GetMethodID(cls, "loadInterstitial", "(Ljava/lang/String;Ljava/lang/String;)V");
     g_maxsdk.m_ShowInterstitial       = env->GetMethodID(cls, "showInterstitial", "(Ljava/lang/String;Ljava/lang/String;)V");
     g_maxsdk.m_IsInterstitialLoaded   = env->GetMethodID(cls, "isInterstitialLoaded", "(Ljava/lang/String;)Z");
 
-    g_maxsdk.m_LoadRewarded     = env->GetMethodID(cls, "loadRewarded", "(Ljava/lang/String;)V");
+    g_maxsdk.m_LoadRewarded     = env->GetMethodID(cls, "loadRewarded", "(Ljava/lang/String;Ljava/lang/String;)V");
     g_maxsdk.m_ShowRewarded     = env->GetMethodID(cls, "showRewarded", "(Ljava/lang/String;Ljava/lang/String;)V");
     g_maxsdk.m_IsRewardedLoaded = env->GetMethodID(cls, "isRewardedLoaded", "(Ljava/lang/String;)Z");
 
-    g_maxsdk.m_LoadBanner     = env->GetMethodID(cls, "loadBanner", "(Ljava/lang/String;I)V");
+    g_maxsdk.m_LoadBanner     = env->GetMethodID(cls, "loadBanner", "(Ljava/lang/String;Ljava/lang/String;I)V");
     g_maxsdk.m_DestroyBanner  = env->GetMethodID(cls, "destroyBanner", "()V");
     g_maxsdk.m_ShowBanner     = env->GetMethodID(cls, "showBanner", "(ILjava/lang/String;)V");
     g_maxsdk.m_HideBanner     = env->GetMethodID(cls, "hideBanner", "()V");
@@ -231,9 +285,9 @@ void OnDeactivateApp()
     CallVoidMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_OnDeactivateApp);
 }
 
-void Initialize()
+void Initialize(const char* amazonAppId)
 {
-    CallVoidMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_Initialize);
+    CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_Initialize, amazonAppId);
 }
 
 void SetMuted(bool muted)
@@ -266,9 +320,9 @@ void OpenMediationDebugger()
     CallVoidMethod(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_OpenMediationDebugger);
 }
 
-void LoadInterstitial(const char* unitId)
+void LoadInterstitial(const char* unitId, const char* amazonSlotID)
 {
-    CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadInterstitial, unitId);
+    CallVoidMethodCharChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadInterstitial, unitId, amazonSlotID);
 }
 
 void ShowInterstitial(const char* unitId, const char* placement)
@@ -281,9 +335,9 @@ bool IsInterstitialLoaded(const char* unitId)
     return CallBoolMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsInterstitialLoaded, unitId);
 }
 
-void LoadRewarded(const char* unitId)
+void LoadRewarded(const char* unitId, const char* amazonSlotID)
 {
-    CallVoidMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadRewarded, unitId);
+    CallVoidMethodCharChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadRewarded, unitId, amazonSlotID);
 }
 
 void ShowRewarded(const char* unitId, const char* placement)
@@ -296,9 +350,9 @@ bool IsRewardedLoaded(const char* unitId)
     return CallBoolMethodChar(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_IsRewardedLoaded, unitId);
 }
 
-void LoadBanner(const char* unitId, BannerSize bannerSize)
+void LoadBanner(const char* unitId, const char* amazonSlotId, BannerSize bannerSize)
 {
-    CallVoidMethodCharInt(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadBanner, unitId, (int)bannerSize);
+    CallVoidMethodCharCharInt(g_maxsdk.m_AppLovinMaxJNI, g_maxsdk.m_LoadBanner, unitId, amazonSlotId, (int)bannerSize);
 }
 
 void DestroyBanner()

@@ -25,7 +25,7 @@ void Initialize_Ext();
 void OnActivateApp();
 void OnDeactivateApp();
 
-void Initialize();
+void Initialize(const char* amazonAppId);
 void SetMuted(bool muted);
 void SetVerboseLogging(bool verbose);
 void SetHasUserConsent(bool hasConsent);
@@ -34,15 +34,15 @@ void SetDoNotSell(bool doNotSell);
 //void SetFbDataProcessingOptions(const char* cstr, int cint1, int cint2);
 void OpenMediationDebugger();
 
-void LoadInterstitial(const char* unitId);
+void LoadInterstitial(const char* unitId, const char* amazonSlotID);
 void ShowInterstitial(const char* unitId, const char* placement);
 bool IsInterstitialLoaded(const char* unitId);
 
-void LoadRewarded(const char* unitId);
+void LoadRewarded(const char* unitId, const char* amazonSlotID);
 void ShowRewarded(const char* unitId, const char* placement);
 bool IsRewardedLoaded(const char* unitId);
 
-void LoadBanner(const char* unitId, BannerSize bannerSize);
+void LoadBanner(const char* unitId, const char* amazonSlotID, BannerSize bannerSize);
 void DestroyBanner();
 void ShowBanner(BannerPosition bannerPos, const char* placement);
 void HideBanner();
