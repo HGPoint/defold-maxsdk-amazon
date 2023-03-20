@@ -554,6 +554,7 @@ public class AppLovinMaxJNI {
             @Override
             public void run() {
                 destroyBannerUiThread();
+                Log.d(TAG, "loadBanner");
                 MaxAdFormat adFormat = getMaxAdFormat(bannerSize);
                 mBannerAdView = new MaxAdView(unitId, adFormat, mActivity);
                 final MaxAdView view = mBannerAdView;
@@ -590,6 +591,7 @@ public class AppLovinMaxJNI {
                                 if (mBannerState == BannerState.PAUSED) {
                                     mBannerAdView.setPlacement(mBannerPlacement);
                                     showBannerUiThread();
+                                    Log.d(TAG, "show loaded banner");
                                 }
 
                                 sendSimpleMessage(MSG_BANNER, EVENT_LOADED,
@@ -653,6 +655,7 @@ public class AppLovinMaxJNI {
                         // 'view' is your instance of MaxAdView
                         view.setLocalExtraParameter( "amazon_ad_response", dtbAdResponse );
                         view.loadAd();
+                        view.setExtraParameter( "allow_pause_auto_refresh_immediately", "true" );
                         view.stopAutoRefresh();
                     }
 
@@ -666,6 +669,7 @@ public class AppLovinMaxJNI {
                         
                         view.setLocalExtraParameter( "amazon_ad_error", adError );
                         view.loadAd();
+                        view.setExtraParameter( "allow_pause_auto_refresh_immediately", "true" );
                         view.stopAutoRefresh();
                     }
                 } );
@@ -708,10 +712,11 @@ public class AppLovinMaxJNI {
                 if (isBannerLoaded()) {        
                     Log.d(TAG, "hideBanner");
                     if(mBannerAdView != null){
+                        mBannerAdView.setExtraParameter( "allow_pause_auto_refresh_immediately", "true" );
                         mBannerAdView.stopAutoRefresh();
                     }
                     if(mBannerLayout != null){
-                        mBannerLayout.setVisibility(View.GONE);
+                        removeBannerLayout()
                     }
                     mBannerState = BannerState.HIDDEN;
                 }
@@ -733,6 +738,7 @@ public class AppLovinMaxJNI {
         }
         
         Log.d(TAG, "destroyBannerUiThread");
+        mBannerAdView.setExtraParameter( "allow_pause_auto_refresh_immediately", "true" );
         mBannerAdView.stopAutoRefresh();
         mBannerAdView.destroy();
         removeBannerLayout();
