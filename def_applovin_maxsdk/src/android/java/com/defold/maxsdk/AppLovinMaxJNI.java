@@ -693,7 +693,7 @@ public class AppLovinMaxJNI {
                     showBannerUiThread();
                 } else {
                     // Log.d(TAG, "The banner ad wasn't ready yet.");
-                    sendSimpleMessage(MSG_REWARDED, EVENT_NOT_LOADED,
+                    sendSimpleMessage(MSG_BANNER, EVENT_NOT_LOADED,
                             "error", "Can't show Banner AD that wasn't loaded.");
                 }
             }
@@ -704,7 +704,7 @@ public class AppLovinMaxJNI {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (isBannerLoaded() && mBannerLayout != null) {
+                if (isBannerLoaded()) {
                     if(mBannerAdView != null){
                         mBannerAdView.stopAutoRefresh();
                     }
