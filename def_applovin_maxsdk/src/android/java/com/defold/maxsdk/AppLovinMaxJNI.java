@@ -705,8 +705,12 @@ public class AppLovinMaxJNI {
             @Override
             public void run() {
                 if (isBannerLoaded() && mBannerLayout != null) {
-                    mBannerAdView.stopAutoRefresh();
-                    mBannerLayout.setVisibility(View.GONE);
+                    if(mBannerAdView != null){
+                        mBannerAdView.stopAutoRefresh();
+                    }
+                    if(mBannerLayout != null){
+                        mBannerLayout.setVisibility(View.GONE);
+                    }
                     mBannerState = BannerState.HIDDEN;
                 }
             }
