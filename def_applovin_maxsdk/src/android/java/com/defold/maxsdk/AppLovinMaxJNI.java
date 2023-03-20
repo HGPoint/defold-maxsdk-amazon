@@ -704,7 +704,7 @@ public class AppLovinMaxJNI {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (isBannerLoaded()) {
+                if (isBannerLoaded() && mBannerLayout != null) {
                     mBannerAdView.stopAutoRefresh();
                     mBannerLayout.setVisibility(View.GONE);
                     mBannerState = BannerState.HIDDEN;
