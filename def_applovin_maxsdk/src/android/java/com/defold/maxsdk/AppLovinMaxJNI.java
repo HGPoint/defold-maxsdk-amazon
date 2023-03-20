@@ -716,7 +716,7 @@ public class AppLovinMaxJNI {
                         mBannerAdView.stopAutoRefresh();
                     }
                     if(mBannerLayout != null){
-                        removeBannerLayout()
+                        removeBannerLayout();
                     }
                     mBannerState = BannerState.HIDDEN;
                 }
