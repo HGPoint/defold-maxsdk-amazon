@@ -687,6 +687,7 @@ public class AppLovinMaxJNI {
             @Override
             public void run() {
                 if (isBannerLoaded()) {
+                    Log.d(TAG, "showBanner");
                     mBannerPlacement = placement;
                     mBannerGravity = getGravity(pos);
                     mBannerAdView.setPlacement(placement);
@@ -704,7 +705,8 @@ public class AppLovinMaxJNI {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (isBannerLoaded()) {
+                if (isBannerLoaded()) {        
+                    Log.d(TAG, "hideBanner");
                     if(mBannerAdView != null){
                         mBannerAdView.stopAutoRefresh();
                     }
@@ -729,7 +731,8 @@ public class AppLovinMaxJNI {
         if (!isBannerLoaded()) {
             return;
         }
-
+        
+        Log.d(TAG, "destroyBannerUiThread");
         mBannerAdView.stopAutoRefresh();
         mBannerAdView.destroy();
         removeBannerLayout();
@@ -740,6 +743,7 @@ public class AppLovinMaxJNI {
     }
 
     private void showBannerUiThread() {
+        Log.d(TAG, "showBannerUiThread");
         recreateBannerLayout(mBannerAdView, mLoadedBanner.getFormat());
         mBannerLayout.setVisibility(View.VISIBLE);
         mBannerAdView.setBackgroundColor(Color.TRANSPARENT);
@@ -809,6 +813,7 @@ public class AppLovinMaxJNI {
 
     private void removeBannerLayout() {
         if (mBannerLayout != null) {
+            mBannerLayout.setVisibility(View.GONE);            
             mBannerLayout.removeAllViews();
             mActivity.getWindowManager().removeView(mBannerLayout);
             mBannerLayout = null;
