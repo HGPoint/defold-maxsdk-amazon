@@ -13,7 +13,10 @@ import com.applovin.mediation.MaxAd;
 import com.applovin.mediation.MaxAdFormat;
 import com.applovin.mediation.MaxAdListener;
 import com.applovin.mediation.MaxAdViewAdListener;
+import com.applovin.mediation.MaxAdWaterfallInfo;
 import com.applovin.mediation.MaxError;
+import com.applovin.mediation.MaxMediatedNetworkInfo;
+import com.applovin.mediation.MaxNetworkResponseInfo;
 import com.applovin.mediation.MaxReward;
 import com.applovin.mediation.MaxRewardedAdListener;
 import com.applovin.mediation.ads.MaxAdView;
@@ -81,6 +84,17 @@ public class AppLovinMaxJNI {
     private static final int POS_BOTTOM_CENTER = 5;
     private static final int POS_BOTTOM_RIGHT = 6;
     private static final int POS_CENTER = 7;
+    
+    
+    private static final String MSG_KEY_EVENT = "event";
+    private static final String MSG_KEY_AD_NETWORK = "ad_network";
+    private static final String MSG_KEY_REVENUE = "revenue";
+    private static final String MSG_KEY_AD_UNIT_ID = "ad_unit_id";
+    private static final String MSG_KEY_CODE = "code";
+    private static final String MSG_KEY_ERROR = "error";
+    private static final String MSG_KEY_X_POS = "x";
+    private static final String MSG_KEY_Y_POS = "y";
+    
     // END CONSTANTS
 
     // Fullscreen Ad Fields
@@ -244,7 +258,7 @@ public class AppLovinMaxJNI {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("error", messageText);
+            obj.put(MSG_KEY_ERROR, messageText);
             message = obj.toString();
         } catch (JSONException e) {
             message = "{ \"error\": \"Error while converting simple message to JSON.\" }";
@@ -253,21 +267,22 @@ public class AppLovinMaxJNI {
     }
 
     private String getErrorMessage(final String adUnitId, final MaxError maxError) {
-        return String.format("%s\n%s\nAdUnitId:%s", maxError.getMessage(), maxError.getAdLoadFailureInfo(), adUnitId);
+        return String.format("%s\n%s\nAdUnitId:%s", maxError.getMessage(), maxError.getMediatedNetworkErrorMessage(), adUnitId);
     }
 
     private String getErrorMessage(final MaxAd ad, MaxError maxError) {
         return String.format("%s\nFormat:%s AdUnitId:%s Network:%s",
                 maxError.getMessage(), ad.getFormat(), ad.getAdUnitId(), ad.getNetworkName());
     }
+
     private void sendSimpleMessage(int msg, int eventId, MaxAd ad) {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("event", eventId);
-            obj.put("ad_network", ad.getNetworkName());
-            obj.put("revenue", ad.getRevenue());
-            obj.put("ad_unit_id", ad.getAdUnitId());
+            obj.put(MSG_KEY_EVENT, eventId);
+            obj.put(MSG_KEY_AD_NETWORK, ad.getNetworkName());
+            obj.put(MSG_KEY_REVENUE, ad.getRevenue());
+            obj.put(MSG_KEY_AD_UNIT_ID, ad.getAdUnitId());
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
@@ -279,12 +294,12 @@ public class AppLovinMaxJNI {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("event", EVENT_FAILED_TO_SHOW);
-            obj.put("ad_network", ad.getNetworkName());
-            obj.put("revenue", ad.getRevenue());
-            obj.put("ad_unit_id", ad.getAdUnitId());
-            obj.put("code", maxError.getCode());
-            obj.put("error", getErrorMessage(ad, maxError));
+            obj.put(MSG_KEY_EVENT, EVENT_FAILED_TO_SHOW);
+            obj.put(MSG_KEY_AD_NETWORK, ad.getNetworkName());
+            obj.put(MSG_KEY_REVENUE, ad.getRevenue());
+            obj.put(MSG_KEY_AD_UNIT_ID, ad.getAdUnitId());
+            obj.put(MSG_KEY_CODE, maxError.getCode());
+            obj.put(MSG_KEY_ERROR, getErrorMessage(ad, maxError));
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
@@ -296,9 +311,22 @@ public class AppLovinMaxJNI {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("event", EVENT_FAILED_TO_LOAD);
-            obj.put("code", maxError.getCode());
-            obj.put("error", getErrorMessage(adUnitId, maxError));
+            obj.put(MSG_KEY_EVENT, EVENT_FAILED_TO_LOAD);
+            obj.put(MSG_KEY_CODE, maxError.getCode());
+            obj.put(MSG_KEY_ERROR, getErrorMessage(adUnitId, maxError));
+            MaxAdWaterfallInfo waterfall = maxError.getWaterfall();
+            if (waterfall != null) {
+                for (MaxNetworkResponseInfo networkResponse : waterfall.getNetworkResponses()) {
+                    MaxMediatedNetworkInfo network = networkResponse.getMediatedNetwork();
+                    if (network != null) {
+                        String name = network.getName();
+                        if (name == null && !name.isEmpty()) {
+                            obj.put(MSG_KEY_AD_NETWORK, name);
+                            break;
+                        }
+                    }
+                }
+            }
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
@@ -310,7 +338,7 @@ public class AppLovinMaxJNI {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("event", eventId);
+            obj.put(MSG_KEY_EVENT, eventId);
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
@@ -322,8 +350,8 @@ public class AppLovinMaxJNI {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("event", EVENT_NOT_LOADED);
-            obj.put("error", messageStr);
+            obj.put(MSG_KEY_EVENT, EVENT_NOT_LOADED);
+            obj.put(MSG_KEY_ERROR, messageStr);
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
@@ -335,9 +363,9 @@ public class AppLovinMaxJNI {
         String message;
         try {
             JSONObject obj = new JSONObject();
-            obj.put("event", EVENT_SIZE_UPDATE);
-            obj.put("x", sizeX);
-            obj.put("y", sizeY);
+            obj.put(MSG_KEY_EVENT, EVENT_SIZE_UPDATE);
+            obj.put(MSG_KEY_X_POS, sizeX);
+            obj.put(MSG_KEY_Y_POS, sizeY);
             message = obj.toString();
         } catch (JSONException e) {
             message = getJsonConversionErrorMessage(e.getMessage());
