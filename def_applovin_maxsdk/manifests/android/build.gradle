@@ -20,14 +20,14 @@ dependencies {
 
     implementation 'com.applovin:applovin-sdk:11.10.1'
 
-    implementation 'com.applovin.mediation:google-adapter:22.1.0.2'
+    implementation 'com.applovin.mediation:google-adapter:22.2.0.0'
 
-    implementation 'com.applovin.mediation:vungle-adapter:6.12.1.1'
+    implementation 'com.applovin.mediation:vungle-adapter:6.12.1.1' //Liftoff Monetize *
 
-    implementation 'com.applovin.mediation:mintegral-adapter:16.4.41.1'
+    implementation 'com.applovin.mediation:mintegral-adapter:16.4.71.0'
     
-    implementation 'com.applovin.mediation:chartboost-adapter:9.2.1.0'
+    implementation 'com.applovin.mediation:chartboost-adapter:9.3.1.0'
 
-    implementation 'com.applovin.mediation:amazon-tam-adapter:9.8.1.0'
-    implementation 'com.amazon.android:aps-sdk:9.8.1'
+    implementation 'com.applovin.mediation:amazon-tam-adapter:9.8.3.0'
+    implementation 'com.amazon.android:aps-sdk:9.8.3'
 }
